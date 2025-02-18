@@ -96,9 +96,20 @@ void GSensor :: ADXL345_XYZ_Read(int16_t szData16[3], int16_t mg_per_lab) {
     
     uint8_t szData8[6];
     ADXL345_RegMultiRead(0x32, (uint8_t *)&szData8, sizeof(szData8));
-    szData16[0] = ((szData8[1] << 8) | szData8[0]) * mg_per_lab;
-    szData16[1] = ((szData8[3] << 8) | szData8[2]) * mg_per_lab;
-    szData16[2] = ((szData8[5] << 8) | szData8[4]) * mg_per_lab;
+    
+    // Optimized with inline assembly for fast memory access
+    asm volatile ( 
+        "ldrh %0, [%1]\n"
+        "ldrh %2, [%3]\n"
+        "ldrh %4, [%5]\n"
+        : "=r" (szData16[0]), "=r" (szData16[1]), "=r" (szData16[2])
+        : "r" (&szData8[0]), "r" (&szData8[2]), "r" (&szData8[4])
+        : "memory"
+    );
+    
+    szData16[0] *= mg_per_lab;
+    szData16[1] *= mg_per_lab;
+    szData16[2] *= mg_per_lab;
     
 }
 

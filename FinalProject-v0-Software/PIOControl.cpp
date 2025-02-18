@@ -9,7 +9,15 @@ PIOControl::~PIOControl() {
 
 void PIOControl::WritePIOout(int value) {
     out_regValue = value;
-    RegisterWrite(OUT_BASE, out_regValue);
+    
+    // Optimized with inline assembly for fast memory-mapped 
+    // register writing
+    asm volatile (
+        "str %1, [%0]"
+        :
+        : "r" (OUT_BASE), "r" (out_regValue)
+        : "memory"
+    );
 }
 
 int PIOControl::ReadPIOin() {
